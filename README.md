@@ -1,6 +1,9 @@
 # JanasahtiBoardGenerator
 Game board generator for my word game [Janasahti](https://github.com/Polystyreeni/Janasahti).
 
+Word list is provided by Kotimaisten kielten keskus, which can be downloaded [Here](https://kaino.kotus.fi/sanat/nykysuomi/). 
+List is licenced under GNU LGPL (Lesser General Public License), EUPL v.1.1 and CC3.0 licences. For more info, see the provided PDF file.
+
 **Usage**
 - Specify number of boards to generate (recommended to keep this low, since it will take a while, something along 10-20 per run is manageable).
 - Specify minimum score requirement (higher scores take more time, but have proven to be more enjoyable to play, balanced values range from 100-160).
