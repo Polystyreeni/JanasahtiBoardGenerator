@@ -45,6 +45,7 @@ public class Board
         Random rand = new Random();
         for(int i = 0; i < boardSize; i++) {
             int n = rand.nextInt(charList.length);
+            //System.out.println("random number: " + n);
             String c = charList[n];
             
             int x = i % boardSide;
@@ -94,6 +95,49 @@ public class Board
 
         catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    // Generate board by forcing a word with wordLen 
+    public Board (int wordLen) {
+        String word = WordData.getWordWithLen(wordLen);
+        WordAdder wordAdder = new WordAdder();
+        wordAdder.initialize();
+
+        ArrayList<Integer> path = new ArrayList<>(wordAdder.tiles.subList(0, wordLen));
+
+        // System.out.println("SubList:");
+        // path.stream().forEach(System.out::println);
+
+        Random rand = new Random(System.currentTimeMillis());
+        
+        for (int i = 0; i < boardSize; i++) {
+            int x = i % boardSide;
+            int y = i / boardSide;
+            if (path.contains(i)) {
+                int index = path.indexOf(i);
+                String s = Character.toString(word.charAt(index));
+                Tile tile = new Tile(x, y, s);
+                tiles.add(tile);
+            }
+            else {
+                int n = rand.nextInt(charList.length);
+                String c = charList[n]; 
+                Tile tile = new Tile(x, y, c);
+                tiles.add(tile);
+            }
+        }
+        stringBuffer.append("Created board that contains word: ").append(word).append(System.lineSeparator());
+    }
+
+    public Board (String boardString) {
+        for(int i = 0; i < boardString.length(); i++) {
+            int x = i % boardSide;
+            int y = i / boardSide;
+            String c = Character.toString(boardString.charAt(i));
+
+            Tile tile = new Tile(x, y, c);
+            tiles.add(tile);
         }
     }
 

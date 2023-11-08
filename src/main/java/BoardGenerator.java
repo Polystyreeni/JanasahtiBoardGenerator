@@ -1,6 +1,7 @@
 import com.poly.wordgame.boardgenerator.Board;
 import com.poly.wordgame.boardgenerator.WordData;
-import com.poly.wordgame.boardgenerator.Tile;
+// import com.poly.wordgame.boardgenerator.Tile;
+import com.poly.wordgame.boardgenerator.BoardData;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,16 +23,26 @@ public class BoardGenerator {
     WordData.generateWordList();
 
     BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
+    System.out.print("Choose Action: (1) Generate board, (2) Rebalance boards: ");
+    String actionStr = user.readLine();
     System.out.print("Number of boards to generate: ");
     String boardsToGenerateStr = user.readLine();
     System.out.println();
     System.out.print("Minimum score requirement: ");
     String scoreRequirementStr = user.readLine();
+    System.out.print("Contains word with length (0 to ignore): ");
+    String wordLenStr = user.readLine();
     System.out.print("Output file name: ");
     String outputFile = user.readLine();
 
     try {
-        // Random board generation - generate 10 boards
+      int index = Integer.parseInt(actionStr);
+      if (index == 2) {
+        balanceFiles();
+        return;
+      }
+
+      // Random board generation - generate 10 boards
       //File boardFile = new File("boards.xml");
       File boardFile = new File(outputFile);
 
@@ -56,13 +67,20 @@ public class BoardGenerator {
       int totalGenerateCount = 0;
       int boardsToGenerate = Integer.parseInt(boardsToGenerateStr) - 1;
       int scoreRequirement = Integer.parseInt(scoreRequirementStr);
+      int wordRequirement = Integer.parseInt(wordLenStr);
       
       while(boardIndex < boardsToGenerate) {
         while(score < scoreRequirement) {
           totalGenerateCount++;
-          Board board = new Board();
+          Board board;
+          if (wordRequirement > 0) {
+            board = new Board(wordRequirement);
+          }
+          else {
+            board = new Board();
+          }
+          
           board.checkBoard();
-    
           score = board.getMaxScore();
           if(score >= scoreRequirement) {
             System.out.println(board.toString());
@@ -89,40 +107,6 @@ public class BoardGenerator {
     catch(Exception e) {
       e.printStackTrace();
     }
-
-    /*String file = "board0.xml";
-    // Read from xml file test
-    Board board = new Board(file, true);
-    System.out.println(board.toString());
-    System.out.println(board.getMaxScore());
-
-    Board boardNoWords = new Board(file, false);
-    System.out.println("Board no words");
-    boardNoWords.checkBoard();
-    System.out.println(boardNoWords.getMaxScore());*/
-
-    // Predefined board test
-    /*List<Tile> tiles = new ArrayList<>();
-    tiles.add(new Tile(0, 0, "ö"));
-    tiles.add(new Tile(1, 0, "c"));
-    tiles.add(new Tile(2, 0, "s"))
-    tiles.add(new Tile(3, 0, "m"));
-    tiles.add(new Tile(0, 1, "a"));
-    tiles.add(new Tile(1, 1, "r"));
-    tiles.add(new Tile(2, 1, "i"));
-    tiles.add(new Tile(3, 1, "a"));
-    tiles.add(new Tile(0, 2, "e"));
-    tiles.add(new Tile(1, 2, "o"));
-    tiles.add(new Tile(2, 2, "p"));
-    tiles.add(new Tile(3, 2, "r"));
-    tiles.add(new Tile(0, 3, "n"));
-    tiles.add(new Tile(1, 3, "l"));
-    tiles.add(new Tile(2, 3, "t"));
-    tiles.add(new Tile(3, 3, "ö"));
-    Board preBoard = new Board(tiles);
-    System.out.println(preBoard.toString());
-    preBoard.checkBoard();*/
-
   }
 
   public static int getBoardCount(String file) {
@@ -167,6 +151,64 @@ public class BoardGenerator {
     }
 
     catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  private static void balanceFiles() {
+    System.out.println("Balance files");
+    try {
+      BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
+      System.out.println("Insert filenames to include in rebalancing (separate with comma):");
+      String fileStr = user.readLine();
+
+      String[] fileNames = fileStr.split(",");
+      BoardData.readBoardStrings(fileNames);
+
+      int boardsPerFile = BoardData.getBoardStrings().size() / fileNames.length;
+      System.out.println("Boards per file: " + boardsPerFile);
+
+      ArrayList<String> boardList = new ArrayList<>();
+      for(var elem : BoardData.getBoardStrings()) {
+        boardList.add(elem);
+      }
+
+      Collections.shuffle(boardList);
+      for(int i = 0; i < fileNames.length; i++) {
+        String newFileName = "balanced-" + fileNames[i];
+        File boardFile = new File(newFileName);
+
+        List<String> subList = boardList.subList(i * boardsPerFile, (i + 1) * boardsPerFile);
+        System.out.println("Sublist size: " + subList.size());
+
+        FileWriter writer = new FileWriter(boardFile, boardFile.isFile());
+        BufferedWriter bufferedWriter = new BufferedWriter(writer);
+
+        final String xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+        String countString = String.format("%n<count>%d</count>%n", boardsPerFile);
+
+        bufferedWriter.write(xmlHeader);
+        bufferedWriter.write(countString);
+
+        for(String boardString : subList) {
+          Board board = new Board(boardString);
+          board.checkBoard();
+
+          System.out.println(board.toString());
+          System.out.println();
+          String data = board.getXmlString();
+          bufferedWriter.write(data);
+          // board.printBuffer();
+          board.clearBuffer();
+        }
+
+        System.out.println("Generated board file: " + newFileName);
+        bufferedWriter.close();
+      }
+
+      System.out.println("Generated balanced files");
+
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }

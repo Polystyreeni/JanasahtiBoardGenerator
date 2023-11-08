@@ -2,6 +2,8 @@ package com.poly.wordgame.boardgenerator;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -37,5 +39,15 @@ public class WordData {
 
     public static boolean containsWord(String text) {
         return wordSet.contains(text);
+    }
+
+    public static String getWordWithLen(int len) {
+        List<String> wordsWithLen = wordSet.stream()
+            .filter(t -> t.length() == len)
+            .filter(t -> !t.contains("-"))
+            .collect(Collectors.toList());
+        System.out.println("Filtered wordlist contains " + wordsWithLen.size() + " words");
+        Random random = new Random(System.currentTimeMillis());
+        return wordsWithLen.get(random.nextInt(wordsWithLen.size()));
     }
 }
